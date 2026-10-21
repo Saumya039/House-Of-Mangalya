@@ -12,7 +12,6 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 20,
-      "memory": 1024,
       "excludeFiles": "{node_modules/@electric-sql/**,test/**,docs/**}"
     }
   },

@@ -26,7 +26,6 @@ function build() {
     functions: {
       'api/index.js': {
         maxDuration: 20,
-        memory: 1024,
         // The in-process Postgres used for local dev is never needed in the cloud
         excludeFiles: '{node_modules/@electric-sql/**,test/**,docs/**}',
       },

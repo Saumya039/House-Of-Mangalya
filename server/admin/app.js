@@ -20,7 +20,7 @@ const ADMIN_DIR = path.resolve(__dirname, '..', '..', 'public', 'admin');
 const ADMIN_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'", "script-src 'self'", "style-src 'self'", "img-src 'self' data:",
-    "font-src 'self'", "connect-src 'self'", "frame-ancestors 'none'", "base-uri 'none'",
+    "font-src 'self'", "connect-src 'self'", "frame-ancestors 'none'", "base-uri 'self'",
     "form-action 'self'", "object-src 'none'",
   ].join('; '),
   'X-Content-Type-Options': 'nosniff',
@@ -279,6 +279,8 @@ function createAdminApp({ config, db, provider, log = console }) {
       }
       // The admin page itself: served here when running locally; on Vercel the CDN serves /admin/*
       if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'Method not allowed');
+      // Pages use <base href="/admin/">; locally the admin has its own port, so map /admin/* onto the same folder
+      req.url = (req.url || '/').replace(/^\/admin(?=\/|\?|$)/, '') || '/';
       if (!(await serveStatic(req, res, ADMIN_DIR))) throw new HttpError(404, 'Not found');
     } catch (err) {
       if (res.headersSent) return res.destroy();

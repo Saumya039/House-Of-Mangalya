@@ -21,7 +21,6 @@ function build() {
     installCommand: 'npm ci --omit=dev',
     outputDirectory: 'public',
     cleanUrls: false,
-    trailingSlash: false,
     regions: ['sin1'],
     functions: {
       'api/index.js': {

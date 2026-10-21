@@ -3,23 +3,53 @@
    Full cart system + all page interactions
    ================================================ */
 
+// ── PRODUCT DISPLAY DATA ───────────────────────────
+// Display only. The server (server/catalog.js) is the source of truth for prices.
+const PRODUCTS = {
+  'turmeric-1kg': {
+    id:    'turmeric-1kg',
+    name:  'Single-Origin Turmeric Powder',
+    weight:'1 kg',
+    price: 500,
+    img:   'assets/product.jpg'
+  }
+};
+const MAX_QTY = 20;
+
 // ── CART STORE (localStorage) ──────────────────────
+// Only {id, qty} is stored. Anything else in storage is ignored, so a tampered
+// cart can't inject markup or change prices.
 const Cart = {
   get() {
-    return JSON.parse(localStorage.getItem('hom_cart') || '[]');
+    let raw;
+    try {
+      raw = JSON.parse(localStorage.getItem('hom_cart') || '[]');
+    } catch {
+      raw = [];
+    }
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter(i => i && Object.hasOwn(PRODUCTS, i.id) && Number.isInteger(i.qty) && i.qty > 0)
+      .map(i => ({ id: i.id, qty: Math.min(i.qty, MAX_QTY) }));
   },
   save(items) {
-    localStorage.setItem('hom_cart', JSON.stringify(items));
+    try {
+      localStorage.setItem('hom_cart', JSON.stringify(items.map(({ id, qty }) => ({ id, qty }))));
+    } catch { /* storage full or blocked — cart lives for this page only */ }
     Cart.updateBadge();
     Cart.renderDrawer();
+    document.dispatchEvent(new CustomEvent('cart:change'));
+  },
+  clear() {
+    Cart.save([]);
   },
   add(product, qty = 1) {
     const items = Cart.get();
     const existing = items.find(i => i.id === product.id);
     if (existing) {
-      existing.qty += qty;
+      existing.qty = Math.min(existing.qty + qty, MAX_QTY);
     } else {
-      items.push({ ...product, qty });
+      items.push({ id: product.id, qty: Math.min(qty, MAX_QTY) });
     }
     Cart.save(items);
     Cart.showToast(`✦ ${product.name} added to cart!`);
@@ -33,12 +63,12 @@ const Cart = {
     const items = Cart.get();
     const item = items.find(i => i.id === id);
     if (item) {
-      item.qty = Math.max(1, item.qty + delta);
+      item.qty = Math.min(MAX_QTY, Math.max(1, item.qty + delta));
       Cart.save(items);
     }
   },
   total() {
-    return Cart.get().reduce((sum, i) => sum + i.price * i.qty, 0);
+    return Cart.get().reduce((sum, i) => sum + PRODUCTS[i.id].price * i.qty, 0);
   },
   count() {
     return Cart.get().reduce((sum, i) => sum + i.qty, 0);
@@ -68,7 +98,7 @@ const Cart = {
     if (!list) return;
 
     const items = Cart.get();
-    list.innerHTML = '';
+    list.replaceChildren();
 
     if (items.length === 0) {
       emptyEl && (emptyEl.style.display = 'block');
@@ -79,50 +109,90 @@ const Cart = {
     emptyEl && (emptyEl.style.display = 'none');
     footerEl && (footerEl.style.display = 'block');
 
+    // Built with DOM APIs + textContent — never innerHTML with data
+    const h = (tag, cls, text) => {
+      const el = document.createElement(tag);
+      if (cls) el.className = cls;
+      if (text !== undefined) el.textContent = text;
+      return el;
+    };
+
     items.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'cart-item';
-      el.innerHTML = `
-        <img src="${item.img}" alt="${item.name}" class="cart-item-img" />
-        <div class="cart-item-info">
-          <p class="cart-item-name">${item.name}</p>
-          <p class="cart-item-sub">${item.weight}</p>
-          <div class="cart-item-row">
-            <div class="cart-qty-ctrl">
-              <button class="cart-qty-btn" data-id="${item.id}" data-delta="-1">−</button>
-              <span>${item.qty}</span>
-              <button class="cart-qty-btn" data-id="${item.id}" data-delta="1">+</button>
-            </div>
-            <span class="cart-item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</span>
-          </div>
-        </div>
-        <button class="cart-remove-btn" data-id="${item.id}" aria-label="Remove item">✕</button>
-      `;
-      list.appendChild(el);
+      const p = PRODUCTS[item.id];
+      const row = h('div', 'cart-item');
+
+      const img = h('img', 'cart-item-img');
+      img.src = p.img;
+      img.alt = p.name;
+
+      const minus = h('button', 'cart-qty-btn', '−');
+      minus.setAttribute('aria-label', 'Decrease quantity');
+      minus.addEventListener('click', () => Cart.updateQty(item.id, -1));
+      const plus = h('button', 'cart-qty-btn', '+');
+      plus.setAttribute('aria-label', 'Increase quantity');
+      plus.addEventListener('click', () => Cart.updateQty(item.id, 1));
+      const ctrl = h('div', 'cart-qty-ctrl');
+      ctrl.append(minus, h('span', '', String(item.qty)), plus);
+
+      const ctrlRow = h('div', 'cart-item-row');
+      ctrlRow.append(ctrl, h('span', 'cart-item-price', `₹${(p.price * item.qty).toLocaleString('en-IN')}`));
+
+      const info = h('div', 'cart-item-info');
+      info.append(h('p', 'cart-item-name', p.name), h('p', 'cart-item-sub', p.weight), ctrlRow);
+
+      const removeBtn = h('button', 'cart-remove-btn', '✕');
+      removeBtn.setAttribute('aria-label', `Remove ${p.name}`);
+      removeBtn.addEventListener('click', () => Cart.remove(item.id));
+
+      row.append(img, info, removeBtn);
+      list.appendChild(row);
     });
 
     if (totalEl) totalEl.textContent = `₹${Cart.total().toLocaleString('en-IN')}`;
-
-    // Bind qty & remove buttons
-    list.querySelectorAll('.cart-qty-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        Cart.updateQty(btn.dataset.id, parseInt(btn.dataset.delta));
-      });
-    });
-    list.querySelectorAll('.cart-remove-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        Cart.remove(btn.dataset.id);
-      });
-    });
   },
   showToast(msg) {
     let toast = document.getElementById('cart-toast');
     if (!toast) return;
     toast.textContent = msg;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+    clearTimeout(Cart._toastTimer);
+    Cart._toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
   }
 };
+
+// ── ATTRIBUTION (where did this visitor come from?) ─
+// Stores only a short channel label (utm_* params or the referring site's hostname) for 30 days,
+// and sends it with the order so the owner can see which channels make money. No personal data.
+const Attribution = {
+  key: 'hom_attr',
+  capture() {
+    try {
+      const p = new URLSearchParams(location.search);
+      const source = p.get('utm_source');
+      let referrer = '';
+      if (document.referrer) {
+        const host = new URL(document.referrer).hostname.replace(/^www\./, '');
+        if (host && host !== location.hostname) referrer = host;
+      }
+      const current = JSON.parse(localStorage.getItem(Attribution.key) || 'null');
+      const expired = !current || Date.now() - current.at > 30 * 864e5;
+      // A tagged link always wins (last campaign touch); otherwise keep the first touch for 30 days
+      if (source || expired) {
+        localStorage.setItem(Attribution.key, JSON.stringify({
+          source: source || null, medium: p.get('utm_medium'), campaign: p.get('utm_campaign'), referrer, at: Date.now()
+        }));
+      }
+    } catch { /* storage blocked */ }
+  },
+  get() {
+    try {
+      const v = JSON.parse(localStorage.getItem(Attribution.key) || 'null');
+      if (!v || Date.now() - v.at > 30 * 864e5) return {};
+      return { source: v.source, medium: v.medium, campaign: v.campaign, referrer: v.referrer };
+    } catch { return {}; }
+  }
+};
+Attribution.capture();
 
 // ── BUILD CART UI (injected into every page) ────────
 function buildCartUI() {
@@ -171,8 +241,7 @@ function buildCartUI() {
 
   document.getElementById('cart-close-btn').addEventListener('click', Cart.closeDrawer);
   document.getElementById('checkout-btn')?.addEventListener('click', () => {
-    Cart.showToast('🎉 Order placed! (Demo mode — integrate your payment gateway)');
-    Cart.closeDrawer();
+    window.location.href = 'checkout.html';
   });
 }
 
@@ -293,21 +362,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (curr > 1) qtyNum.textContent = curr - 1;
   });
   document.querySelector('.qty-plus')?.addEventListener('click', () => {
-    qtyNum.textContent = parseInt(qtyNum.textContent) + 1;
+    const curr = parseInt(qtyNum.textContent);
+    if (curr < MAX_QTY) qtyNum.textContent = curr + 1;
   });
 
   // ── ADD TO CART (Product Page) ─────────────────
   const addToCartBtn = document.querySelector('#add-to-cart-btn');
   if (addToCartBtn) {
+    let outOfStock = false;
     addToCartBtn.addEventListener('click', () => {
+      if (outOfStock) return;
       const qty = parseInt(document.querySelector('.qty-num')?.textContent || '1');
-      Cart.add({
-        id:    'turmeric-1kg',
-        name:  'Single-Origin Turmeric Powder',
-        weight:'1 kg',
-        price: 500,
-        img:   'assets/product.jpg'
-      }, qty);
+      Cart.add(PRODUCTS['turmeric-1kg'], qty);
 
       // Button feedback
       const orig = addToCartBtn.innerHTML;
@@ -317,9 +383,30 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         addToCartBtn.innerHTML = orig;
         addToCartBtn.style.background = '';
-        addToCartBtn.disabled = false;
+        addToCartBtn.disabled = outOfStock;
       }, 2000);
     });
+
+    // Live stock: "Only 7 left" / "Out of stock" (silently skipped if the API isn't reachable)
+    fetch('/api/config').then(r => (r.ok ? r.json() : null)).then(cfg => {
+      const p = cfg?.products?.find(x => x.id === 'turmeric-1kg');
+      const note = document.getElementById('stock-note');
+      if (!p || !note) return;
+      note.hidden = false;
+      if (p.stockStatus === 'out') {
+        outOfStock = true;
+        addToCartBtn.disabled = true;
+        addToCartBtn.textContent = 'Out of stock';
+        note.textContent = 'Currently out of stock — back soon.';
+        note.className = 'stock-note stock-out';
+      } else if (p.stockStatus === 'low') {
+        note.textContent = `Only ${p.left} left — order soon`;
+        note.className = 'stock-note stock-low';
+      } else {
+        note.textContent = '✓ In stock — ships within 1–2 business days';
+        note.className = 'stock-note stock-in';
+      }
+    }).catch(() => {});
   }
 
   // ── Counter Animation ──────────────────────────
@@ -348,17 +435,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Newsletter Form ────────────────────────────
   document.querySelectorAll('.newsletter-form').forEach(form => {
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = form.querySelector('input[type="email"]');
       const btn   = form.querySelector('button');
-      if (input?.value) {
-        const orig = btn.textContent;
-        btn.textContent = '✓ Subscribed!';
-        btn.style.background = '#3B5E3A';
-        input.value = '';
-        setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 3000);
+      if (!input?.value || btn.disabled) return;
+      const orig = btn.textContent;
+      btn.disabled = true;
+      let ok = false;
+      let code = '';
+      try {
+        const res = await fetch('/api/newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: input.value })
+        });
+        ok = res.ok;
+        if (ok) code = (await res.json().catch(() => ({}))).code || '';
+      } catch { /* offline, or site opened without the server */ }
+      if (code) {
+        try { localStorage.setItem('hom_coupon', code); } catch { /* ignore */ }
+        Cart.showToast(`🎉 Use code ${code} at checkout for 10% off`);
       }
+      btn.textContent = ok ? (code ? `✓ Code: ${code}` : '✓ Subscribed!') : 'Try again';
+      btn.style.background = ok ? '#3B5E3A' : '';
+      if (ok) input.value = '';
+      setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.disabled = false; }, 3000);
     });
   });
 

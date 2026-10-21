@@ -1,0 +1,24 @@
+[Unit]
+Description=House of Mangalya store + admin
+After=network.target
+
+[Service]
+User=mangalya
+WorkingDirectory=/opt/mangalya
+ExecStart=/usr/bin/node server/index.js
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+# Secrets live in /opt/mangalya/.env (chmod 600), loaded by the app itself.
+
+# Hardening: the process may only write to its own data and backups folders
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/mangalya/data /opt/mangalya/backups
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

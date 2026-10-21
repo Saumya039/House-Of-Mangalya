@@ -1,0 +1,12 @@
+# Not needed in the cloud build
+.env
+.env.*
+!.env.example
+data/
+backups/
+docs/
+deploy/
+test/
+.claude/
+scripts/
+*.md

@@ -1,0 +1,10 @@
+# Caddy gets and renews HTTPS certificates automatically.
+# Replace houseofmangalya.com with your domain (both names must point to the server's IP).
+houseofmangalya.com, www.houseofmangalya.com {
+	encode zstd gzip
+	# Send www to the bare domain
+	@www host www.houseofmangalya.com
+	redir @www https://houseofmangalya.com{uri} permanent
+
+	reverse_proxy 127.0.0.1:3000
+}

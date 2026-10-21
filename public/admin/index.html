@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Mangalya Admin</title>
+  <link rel="icon" href="logo.png" />
+  <link rel="stylesheet" href="admin.css?v=6" />
+</head>
+<body>
+
+  <!-- ── LOGIN ── -->
+  <main class="login" id="login-view" hidden>
+    <form class="login-card" id="login-form" autocomplete="on">
+      <img src="logo.png" alt="" class="login-logo" />
+      <h1>House of Mangalya</h1>
+      <p class="muted">Admin portal</p>
+      <label for="login-user">Username</label>
+      <input id="login-user" name="username" autocomplete="username" required maxlength="64" />
+      <label for="login-pass">Password</label>
+      <input id="login-pass" name="password" type="password" autocomplete="current-password" required maxlength="256" />
+      <div id="login-code-row" hidden>
+        <label for="login-code">Authenticator code</label>
+        <input id="login-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="6-digit code" />
+      </div>
+      <p class="form-error" id="login-error" role="alert" hidden></p>
+      <button type="submit" class="btn btn-primary btn-block" id="login-btn">Sign in</button>
+      <p class="login-note">🔒 Sessions expire after 30 minutes of inactivity. 5 failed attempts lock sign-in for 15 minutes.</p>
+    </form>
+  </main>
+
+  <!-- ── APP ── -->
+  <div class="app" id="app-view" hidden>
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="logo.png" alt="" />
+        <div><strong>Mangalya</strong><span>Admin</span></div>
+      </div>
+      <nav aria-label="Admin sections">
+        <a href="#dashboard" data-view="dashboard">📊 Dashboard <span class="nav-count nav-count-critical" id="nav-alerts" hidden></span></a>
+        <p class="nav-group">Sales</p>
+        <a href="#orders" data-view="orders">📦 Orders</a>
+        <a href="#fulfilment" data-view="fulfilment">🚚 To ship <span class="nav-count" id="nav-toship" hidden></span></a>
+        <a href="#recover" data-view="recover">💬 Recover sales</a>
+        <a href="#customers" data-view="customers">👥 Customers</a>
+        <p class="nav-group">Growth</p>
+        <a href="#marketing" data-view="marketing">📣 Marketing</a>
+        <a href="#coupons" data-view="coupons">🏷️ Coupons</a>
+        <a href="#retention" data-view="retention">🔁 Retention</a>
+        <a href="#profit" data-view="profit">💰 Profit</a>
+        <p class="nav-group">Operations</p>
+        <a href="#inventory" data-view="inventory">🗃️ Inventory</a>
+        <a href="#payments" data-view="payments">💳 Payment events</a>
+        <a href="#subscribers" data-view="subscribers">✉️ Subscribers</a>
+        <p class="nav-group">System</p>
+        <a href="#settings" data-view="settings">⚙️ Settings</a>
+        <a href="#audit" data-view="audit">🛡️ Audit log</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="badge badge-warning" id="test-badge" hidden>⚠ Test mode</span>
+        <button class="btn btn-ghost btn-block" id="theme-btn" type="button">◐ Auto</button>
+        <a id="store-link" href="#" target="_blank" rel="noopener noreferrer">Open store ↗</a>
+        <button class="btn btn-ghost btn-block" id="logout-btn" type="button">Sign out <span id="who" class="muted"></span></button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="btn btn-ghost menu-btn" id="menu-btn" aria-label="Toggle menu" type="button">☰</button>
+        <h2 id="view-title">Dashboard</h2>
+        <button class="btn btn-ghost search-btn" id="search-btn" type="button" aria-label="Search (Ctrl+K)">🔍 <span>Search</span> <kbd>Ctrl K</kbd></button>
+        <div class="range" id="range-picker" role="group" aria-label="Date range">
+          <button data-days="1" type="button">Today</button>
+          <button data-days="7" type="button">7D</button>
+          <button data-days="30" type="button">30D</button>
+          <button data-days="90" type="button">90D</button>
+          <button data-days="365" type="button">1Y</button>
+          <label class="range-custom">
+            <input type="date" id="range-from" aria-label="From date" />
+            <span>→</span>
+            <input type="date" id="range-to" aria-label="To date" />
+          </label>
+        </div>
+        <button class="btn btn-ghost" id="refresh-btn" title="Refresh" type="button">↻</button>
+      </header>
+
+      <div class="banner banner-error" id="global-error" role="alert" hidden></div>
+      <div id="views"></div>
+    </div>
+  </div>
+
+  <!-- ── ORDER DRAWER ── -->
+  <div class="drawer-overlay" id="drawer-overlay" hidden></div>
+  <aside class="drawer" id="order-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+    <header class="drawer-head">
+      <div>
+        <h3 id="drawer-title">Order</h3>
+        <div id="drawer-badges" class="badges"></div>
+      </div>
+      <button class="btn btn-ghost" id="drawer-close" aria-label="Close" type="button">✕</button>
+    </header>
+    <div class="drawer-body" id="drawer-body"></div>
+  </aside>
+
+  <div class="tooltip" id="tooltip" role="status" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/core.js?v=6"></script>
+  <script src="js/charts.js?v=6"></script>
+  <script src="js/v-orders.js?v=6"></script>
+  <script src="js/v-dashboard.js?v=6"></script>
+  <script src="js/v-customers.js?v=6"></script>
+  <script src="js/v-growth.js?v=6"></script>
+  <script src="js/v-ops.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
+</body>
+</html>

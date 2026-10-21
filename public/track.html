@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Your Order — House of Mangalya</title>
+  <meta name="description" content="Check the status of your House of Mangalya order." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<!-- Policy text drafted from the FAQ and the live checkout behaviour. Have a lawyer / CA review before relying on it. -->
+
+  <!-- ── NAVIGATION ── -->
+  <nav class="navbar scrolled" role="navigation" aria-label="Main navigation">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">
+          <img src="assets/logo.png" alt="House of Mangalya" class="nav-logo-img" />
+          <span class="nav-logo-name">House of Mangalya</span>
+        </a>
+        <ul class="nav-links" role="menubar">
+          <li><a href="index.html" role="menuitem">Home</a></li>
+          <li><a href="product.html" role="menuitem">Products</a></li>
+          <li><a href="about.html" role="menuitem">Our Story</a></li>
+          <li><a href="blog.html" role="menuitem">Journal</a></li>
+          <li><a href="faq.html" role="menuitem">FAQ</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a href="product.html" class="btn btn-primary" id="nav-shop-btn">Shop Now</a>
+        </div>
+        <button class="hamburger" aria-label="Toggle menu" aria-expanded="false" id="hamburger-btn">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <section class="page-hero page-hero-compact" aria-label="Track Your Order">
+    <div class="container">
+      <span class="section-label">Order Status</span>
+      <h1>Track Your Order</h1>
+      <p>Enter your order number and the email you used at checkout.</p>
+    </div>
+  </section>
+
+  <section class="section-pad track-page"><div class="container track-wrap">
+    <form class="checkout-card" id="track-form" novalidate>
+      <div class="form-field"><label for="t-order">Order number</label><input id="t-order" name="orderId" placeholder="HOM-20261021-AB12CD34" autocomplete="off" required maxlength="30" /></div>
+      <div class="form-field"><label for="t-email">Email</label><input id="t-email" name="email" type="email" autocomplete="email" required maxlength="254" /></div>
+      <p class="checkout-form-error" id="t-error" role="alert" hidden></p>
+      <button class="btn btn-primary checkout-pay-btn" type="submit" id="t-btn">Track order</button>
+    </form>
+    <div class="checkout-card track-result" id="t-result" hidden></div>
+  </div></section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-logo">
+            <img src="assets/logo.png" alt="House of Mangalya" class="nav-logo-img" />
+            <span class="nav-logo-name">House of Mangalya</span>
+          </div>
+          <p>Rooted in heritage. Backed by science. House of Mangalya delivers the most potent, purest single-origin turmeric from India's sacred farmlands to your home.</p>
+          <br />
+          <div class="cert-badges">
+            <span class="cert-badge">🌿 USDA Organic</span>
+            <span class="cert-badge">🇮🇳 India Organic</span>
+            <span class="cert-badge">🔬 Lab Tested</span>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Shop</h4>
+          <ul class="footer-links">
+            <li><a href="product.html">Turmeric Powder 1 kg</a></li>
+            <li><a href="product.html">Bulk Orders</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-heading">Company</h4>
+          <ul class="footer-links">
+            <li><a href="about.html">Our Story</a></li>
+            <li><a href="about.html">Certifications</a></li>
+            <li><a href="blog.html">Journal</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-heading">Support</h4>
+          <ul class="footer-links">
+            <li><a href="shipping-returns.html">Shipping Policy</a></li>
+            <li><a href="shipping-returns.html#returns">Returns &amp; Refunds</a></li>
+            <li><a href="faq.html">Contact Us</a></li>
+            <li><a href="track.html">Track Your Order</a></li>
+            <li><a href="mailto:hello@houseofmangalya.com">hello@houseofmangalya.com</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 House of Mangalya. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Use</a></p>
+        <p>Made with 🌿 in India</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/track.js"></script>
+</body>
+</html>

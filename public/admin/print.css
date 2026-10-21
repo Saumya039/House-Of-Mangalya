@@ -1,0 +1,41 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+body { font: 13px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #111; background: #e9e8e4; }
+.toolbar-print { position: sticky; top: 0; display: flex; gap: 1rem; align-items: center; padding: 0.6rem 1rem; background: #fff; border-bottom: 1px solid #ccc; z-index: 5; }
+.toolbar-print button { font: inherit; font-weight: 600; padding: 0.45rem 1rem; border-radius: 8px; border: 0; background: #b07d2b; color: #fff; cursor: pointer; }
+.notice { margin: 0.8rem auto 0; max-width: 794px; padding: 0.6rem 0.9rem; background: #fff4d6; border: 1px solid #c8963e; border-radius: 8px; }
+main { padding: 1rem; }
+.doc { width: 794px; max-width: 100%; min-height: 1000px; margin: 0 auto 1rem; padding: 36px 40px; background: #fff; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12); page-break-after: always; display: flex; flex-direction: column; gap: 14px; }
+.doc-head { display: flex; justify-content: space-between; gap: 24px; border-bottom: 2px solid #111; padding-bottom: 12px; }
+.doc-head h1 { font-size: 20px; margin-bottom: 4px; }
+.title-box { text-align: right; min-width: 210px; }
+.title-box h2 { font-size: 18px; letter-spacing: 0.08em; margin-bottom: 6px; }
+.muted { color: #666; }
+.small { font-size: 11px; }
+.warn { color: #b3261e; font-weight: 600; }
+.parties { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.party h4, .shipto h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #666; margin-bottom: 4px; }
+table { width: 100%; border-collapse: collapse; }
+table.lines th, table.lines td { border: 1px solid #bbb; padding: 6px 8px; text-align: left; vertical-align: top; }
+table.lines th { background: #f2f1ed; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+.n { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.totals { display: flex; justify-content: flex-end; }
+.totals table { width: 300px; }
+.totals td { padding: 4px 8px; border-bottom: 1px solid #ddd; }
+.totals .grand td { font-weight: 700; font-size: 15px; border-top: 2px solid #111; border-bottom: 2px solid #111; }
+.words { padding: 8px 10px; background: #f7f6f2; border-radius: 6px; }
+.doc-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #ccc; padding-top: 10px; }
+.sign { text-align: right; padding-top: 36px; }
+.big { font-size: 18px; font-weight: 700; }
+.shipto { border: 2px solid #111; border-radius: 8px; padding: 14px 16px; display: grid; gap: 2px; font-size: 15px; }
+.note-box { border: 1px dashed #888; padding: 8px 10px; border-radius: 6px; }
+.center { text-align: center; margin-top: auto; color: #666; }
+.slip table.lines td { font-size: 15px; }
+
+@media print {
+  body { background: #fff; }
+  .toolbar-print, .notice { display: none !important; }
+  main { padding: 0; }
+  .doc { box-shadow: none; margin: 0; width: auto; min-height: 0; height: 100vh; padding: 0; }
+  @page { size: A4; margin: 14mm; }
+}

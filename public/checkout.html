@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure Checkout — House of Mangalya</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ── NAVIGATION ── -->
+  <nav class="navbar scrolled" role="navigation" aria-label="Main navigation">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">
+          <img src="assets/logo.png" alt="House of Mangalya" class="nav-logo-img" />
+          <span class="nav-logo-name">House of Mangalya</span>
+        </a>
+        <ul class="nav-links" role="menubar">
+          <li><a href="index.html" role="menuitem">Home</a></li>
+          <li><a href="product.html" role="menuitem">Products</a></li>
+          <li><a href="about.html" role="menuitem">Our Story</a></li>
+          <li><a href="blog.html" role="menuitem">Journal</a></li>
+          <li><a href="faq.html" role="menuitem">FAQ</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a href="product.html" class="btn btn-primary" id="nav-shop-btn">Shop Now</a>
+        </div>
+        <button class="hamburger" aria-label="Toggle menu" aria-expanded="false" id="hamburger-btn">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── PAGE HERO ── -->
+  <section class="page-hero page-hero-compact" aria-label="Checkout header">
+    <div class="container">
+      <span class="section-label">Secure Checkout</span>
+      <h1>Complete Your Order</h1>
+      <p>Payments are processed by Razorpay (PCI-DSS Level 1). Your card and UPI details never touch our servers.</p>
+    </div>
+  </section>
+
+  <section class="section-pad checkout-section" aria-label="Checkout">
+    <div class="container">
+
+      <div class="checkout-test-banner" id="test-banner" hidden>
+        ⚠ Test mode: no real money will be charged.
+      </div>
+
+      <!-- Empty cart -->
+      <div class="checkout-empty" id="checkout-empty" hidden>
+        <span aria-hidden="true">🛒</span>
+        <h2>Your cart is empty</h2>
+        <p>Add our single-origin turmeric to your cart to check out.</p>
+        <a href="product.html" class="btn btn-primary">Shop Now</a>
+      </div>
+
+      <!-- Success -->
+      <div class="checkout-success" id="checkout-success" hidden>
+        <div class="checkout-success-icon" aria-hidden="true">✓</div>
+        <h2>Thank you, your order is confirmed</h2>
+        <p>Order number <strong id="success-order-id"></strong></p>
+        <p id="success-message">A confirmation will be sent to <strong id="success-email"></strong>.</p>
+        <p class="checkout-success-total">Amount paid: <strong id="success-total"></strong></p>
+        <a href="index.html" class="btn btn-primary">Back to Home</a>
+      </div>
+
+      <div class="checkout-layout" id="checkout-layout" hidden>
+        <form class="checkout-form" id="checkout-form" novalidate aria-label="Checkout form">
+
+          <fieldset class="checkout-card">
+            <legend>Contact</legend>
+            <div class="form-field">
+              <label for="f-name">Full name</label>
+              <input id="f-name" name="name" autocomplete="name" required minlength="2" maxlength="80" />
+              <p class="field-error" data-error-for="name"></p>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="f-email">Email</label>
+                <input id="f-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+                <p class="field-error" data-error-for="email"></p>
+              </div>
+              <div class="form-field">
+                <label for="f-phone">Mobile number</label>
+                <input id="f-phone" name="phone" type="tel" autocomplete="tel-national" inputmode="numeric" required maxlength="16" placeholder="10-digit mobile" />
+                <p class="field-error" data-error-for="phone"></p>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="checkout-card">
+            <legend>Shipping address <span class="legend-note">(India only)</span></legend>
+            <div class="form-field">
+              <label for="f-address1">Address</label>
+              <input id="f-address1" name="address1" autocomplete="address-line1" required maxlength="120" placeholder="House no., building, street" />
+              <p class="field-error" data-error-for="address1"></p>
+            </div>
+            <div class="form-field">
+              <label for="f-address2">Address line 2 <span class="optional">(optional)</span></label>
+              <input id="f-address2" name="address2" autocomplete="address-line2" maxlength="120" placeholder="Area, landmark" />
+              <p class="field-error" data-error-for="address2"></p>
+            </div>
+            <div class="form-row form-row-3">
+              <div class="form-field">
+                <label for="f-city">City</label>
+                <input id="f-city" name="city" autocomplete="address-level2" required maxlength="60" />
+                <p class="field-error" data-error-for="city"></p>
+              </div>
+              <div class="form-field">
+                <label for="f-state">State</label>
+                <select id="f-state" name="state" autocomplete="address-level1" required>
+                  <option value="">Select state</option>
+                </select>
+                <p class="field-error" data-error-for="state"></p>
+              </div>
+              <div class="form-field">
+                <label for="f-pincode">PIN code</label>
+                <input id="f-pincode" name="pincode" autocomplete="postal-code" inputmode="numeric" required maxlength="6" pattern="[1-9][0-9]{5}" />
+                <p class="field-error" data-error-for="pincode"></p>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="checkout-card">
+            <legend>Delivery</legend>
+            <div class="shipping-options" id="shipping-options" role="radiogroup"></div>
+          </fieldset>
+
+          <p class="checkout-form-error" id="form-error" role="alert" hidden></p>
+
+          <button type="submit" class="btn btn-primary checkout-pay-btn" id="pay-btn" disabled>
+            <span aria-hidden="true">🔒</span> <span id="pay-btn-label">Pay securely</span>
+          </button>
+          <p class="checkout-fineprint">
+            By placing your order you agree to our <a href="terms.html">Terms</a> and
+            <a href="shipping-returns.html#returns">Returns Policy</a>. UPI, cards, net banking and wallets accepted.
+          </p>
+        </form>
+
+        <aside class="checkout-summary checkout-card" aria-label="Order summary">
+          <h2>Order Summary</h2>
+          <ul class="summary-lines" id="summary-lines"></ul>
+          <div class="coupon-box">
+            <label for="f-coupon">Have a coupon?</label>
+            <div class="coupon-row">
+              <input id="f-coupon" maxlength="20" autocomplete="off" placeholder="Enter code" spellcheck="false" />
+              <button type="button" class="btn btn-outline" id="coupon-apply">Apply</button>
+            </div>
+            <p class="coupon-msg" id="coupon-msg" role="status"></p>
+          </div>
+          <dl class="summary-totals">
+            <div><dt>Subtotal</dt><dd id="sum-subtotal">—</dd></div>
+            <div class="summary-discount" id="sum-discount-row" hidden><dt>Coupon <span id="sum-coupon-code"></span></dt><dd id="sum-discount">—</dd></div>
+            <div><dt>Shipping</dt><dd id="sum-shipping">—</dd></div>
+            <div class="summary-grand"><dt>Total</dt><dd id="sum-total">—</dd></div>
+          </dl>
+          <p class="summary-note">Prices inclusive of all taxes.</p>
+          <ul class="summary-trust">
+            <li>🔒 256-bit encrypted payment</li>
+            <li>🚚 Free standard shipping above ₹999</li>
+            <li>↩️ 14-day returns</li>
+          </ul>
+          <a href="product.html" class="cart-continue">← Continue shopping</a>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mock gateway (local development only) -->
+  <div class="mock-gateway" id="mock-gateway" role="dialog" aria-modal="true" aria-labelledby="mock-title" hidden>
+    <div class="mock-gateway-box">
+      <p class="mock-gateway-tag">TEST GATEWAY</p>
+      <h3 id="mock-title">Simulate payment</h3>
+      <p>Amount: <strong id="mock-amount"></strong></p>
+      <p class="mock-gateway-note">This stands in for the Razorpay popup during local development. Add Razorpay test keys to <code>.env</code> to use the real one.</p>
+      <div class="mock-gateway-actions">
+        <button type="button" class="btn btn-primary" data-mock="success">Pay (success)</button>
+        <button type="button" class="btn btn-outline" data-mock="failure">Decline</button>
+        <button type="button" class="mock-cancel" data-mock="cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-logo">
+            <img src="assets/logo.png" alt="House of Mangalya" class="nav-logo-img" />
+            <span class="nav-logo-name">House of Mangalya</span>
+          </div>
+          <p>Rooted in heritage. Backed by science. House of Mangalya delivers the most potent, purest single-origin turmeric from India's sacred farmlands to your home.</p>
+          <br />
+          <div class="cert-badges">
+            <span class="cert-badge">🌿 USDA Organic</span>
+            <span class="cert-badge">🇮🇳 India Organic</span>
+            <span class="cert-badge">🔬 Lab Tested</span>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Shop</h4>
+          <ul class="footer-links">
+            <li><a href="product.html">Turmeric Powder 1 kg</a></li>
+            <li><a href="product.html">Bulk Orders</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-heading">Company</h4>
+          <ul class="footer-links">
+            <li><a href="about.html">Our Story</a></li>
+            <li><a href="about.html">Certifications</a></li>
+            <li><a href="blog.html">Journal</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-heading">Support</h4>
+          <ul class="footer-links">
+            <li><a href="shipping-returns.html">Shipping Policy</a></li>
+            <li><a href="shipping-returns.html#returns">Returns &amp; Refunds</a></li>
+            <li><a href="faq.html">Contact Us</a></li>
+            <li><a href="track.html">Track Your Order</a></li>
+            <li><a href="mailto:hello@houseofmangalya.com">hello@houseofmangalya.com</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 House of Mangalya. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Use</a></p>
+        <p>Made with 🌿 in India</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/checkout.js"></script>
+</body>
+</html>

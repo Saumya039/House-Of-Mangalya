@@ -1,0 +1,26 @@
+{
+  "name": "house-of-mangalya",
+  "version": "1.0.0",
+  "private": true,
+  "description": "House of Mangalya storefront with secure Razorpay checkout",
+  "license": "MIT",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/*.test.js",
+    "admin:password": "node scripts/admin-password.js",
+    "seed:demo": "node scripts/seed-demo.js",
+    "backup": "node scripts/backup.js",
+    "preflight": "node scripts/preflight.js",
+    "build:vercel": "node scripts/build-vercel.js"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.11"
+  }
+}

@@ -8,6 +8,13 @@
   <meta name="keywords" content="buy organic turmeric powder online India, high curcumin turmeric, pure turmeric powder, single origin turmeric, House of Mangalya turmeric" />
   <meta property="og:title" content="Single-Origin Turmeric Powder — House of Mangalya" />
   <link rel="canonical" href="https://houseofmangalya.com/product.html" />
+  <meta property="og:type" content="product" />
+  <meta property="og:description" content="Lab-certified single-origin organic turmeric powder with 5.5% curcumin. Stone-ground, zero additives." />
+  <meta property="og:image" content="https://houseofmangalya.com/assets/product.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Product","name":"Single-Origin Turmeric Powder (1 kg)","image":"https://houseofmangalya.com/assets/product.jpg","description":"Lab-tested single-origin turmeric powder with 5.5% curcumin, cold stone-ground, no additives.","brand":{"@type":"Brand","name":"House of Mangalya"},"offers":{"@type":"Offer","priceCurrency":"INR","price":"500","url":"https://houseofmangalya.com/product.html"}}
+  </script>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -121,6 +128,8 @@
               </div>
             </div>
           </div>
+
+          <p class="stock-note" id="stock-note" hidden></p>
 
           <!-- Quantity & Cart -->
           <label style="font-size:0.82rem;color:var(--text-muted);display:block;margin-bottom:0.5rem;" for="qty-display">Quantity</label>
@@ -247,9 +256,7 @@
           <h4 class="footer-heading">Shop</h4>
           <ul class="footer-links">
             <li><a href="product.html">Turmeric Powder 1 kg</a></li>
-            <li><a href="product.html">Turmeric Powder 500g</a></li>
             <li><a href="product.html">Bulk Orders</a></li>
-            <li><a href="product.html">Gift Sets</a></li>
           </ul>
         </div>
         <div>
@@ -264,35 +271,21 @@
         <div>
           <h4 class="footer-heading">Support</h4>
           <ul class="footer-links">
-            <li><a href="faq.html">Shipping Policy</a></li>
-            <li><a href="faq.html">Returns & Refunds</a></li>
+            <li><a href="shipping-returns.html">Shipping Policy</a></li>
+            <li><a href="shipping-returns.html#returns">Returns &amp; Refunds</a></li>
             <li><a href="faq.html">Contact Us</a></li>
+            <li><a href="track.html">Track Your Order</a></li>
             <li><a href="mailto:hello@houseofmangalya.com">hello@houseofmangalya.com</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© 2025 House of Mangalya. All rights reserved. | <a href="faq.html">Privacy Policy</a> | <a href="faq.html">Terms of Use</a></p>
+        <p>© 2026 House of Mangalya. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Use</a></p>
         <p>Made with 🌿 in India</p>
       </div>
     </div>
   </footer>
 
-  <script>
-    // Product thumbnail switcher
-    document.querySelectorAll('.product-thumb').forEach(thumb => {
-      thumb.addEventListener('click', () => {
-        document.querySelectorAll('.product-thumb').forEach(t => t.classList.remove('active'));
-        thumb.classList.add('active');
-        const img = thumb.querySelector('img');
-        document.getElementById('main-product-img').src = img.src;
-        document.getElementById('main-product-img').alt = img.alt;
-      });
-      thumb.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); thumb.click(); }
-      });
-    });
-  </script>
   <script src="js/main.js"></script>
 </body>
 </html>

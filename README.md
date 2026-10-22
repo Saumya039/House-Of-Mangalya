@@ -71,37 +71,40 @@ Browser                       Our server (server/)                 Razorpay
 | Path traversal | Static files served only from `public/`, dotfiles and unknown types blocked |
 | SQL injection | Parameterised queries only |
 | Secret leaks | Secrets only in `.env` (git-ignored); logs contain no PII or signatures |
-| Supply chain | **Zero npm dependencies** — Node built-ins only |
+| Supply chain | Only one runtime dependency (`pg`, the Postgres driver); `npm audit` is clean; lockfile pinned |
 | Misconfiguration | Server refuses to start in production with mock payments, http origin or no webhook secret |
 
 ## ✦ Running Locally
 
-Requires **Node.js 22.13+** (no `npm install` needed — there are no dependencies).
+Requires **Node.js 22.13+**. Two small dependencies: `pg` (Postgres driver) and, for local development only, PGlite (a real Postgres running in-process — no database to install).
 
 ```bash
 git clone https://github.com/Saumya039/House-Of-Mangalya.git
 cd House-Of-Mangalya
+npm install
 cp .env.example .env
 npm start
 ```
 
-Open http://localhost:3000. With no Razorpay keys the site runs in **mock payment mode** — a test popup lets you simulate success/decline. To use the real Razorpay test checkout, add your `rzp_test_` keys to `.env`.
+Open http://localhost:3000. With no `DATABASE_URL` the data lives in `data/pgdata`. With no Razorpay keys the site runs in **mock payment mode** — a test popup lets you simulate success/decline. Use `rzp_test_` keys to try Razorpay's real checkout.
 
 ```bash
-npm test     # security, checkout and admin test suite
+npm test                 # security, checkout and admin tests
+npm run seed:demo        # optional: DEMO orders for exploring the dashboard (local only)
+npm run seed:demo -- --clear
 ```
 
 ## ✦ Admin Portal
 
-A private back office on its **own port** (default `http://localhost:3001`), bound to `127.0.0.1` so it is never reachable from the internet unless you deliberately configure it.
+A private back office. Locally: `http://localhost:3001` (bound to `127.0.0.1`). In production: `https://<your-site>/admin/`, protected by password + authenticator code.
 
 ```bash
 npm run admin:password      # set the admin password (only an scrypt hash is stored in .env)
 npm start                   # store on :3000, admin on :3001
 npm run seed:demo           # optional: load DEMO- orders to explore the dashboard
 npm run seed:demo -- --clear
-npm run backup              # timestamped snapshot of the database into backups/
-npm test                    # 30 security & business-logic tests
+npm run backup              # portable gzip snapshot of the database into backups/
+npm test                    # 36 security & business-logic tests
 ```
 
 Press **Ctrl/⌘ + K** anywhere to jump to a page, order or customer.
@@ -121,26 +124,17 @@ Press **Ctrl/⌘ + K** anywhere to jump to a page, order or customer.
 | **Inventory** | Live stock (store shows “Only N left” / blocks overselling), receive stock, count, low-stock alerts, movement history |
 | **Payment events · Subscribers · Audit log · Settings** | Signed webhooks with outcome, newsletter list, who-did-what log, business/GST/cost settings |
 
-**Security** — scrypt password hash; 256-bit session tokens in `HttpOnly; SameSite=Strict` cookies (the server keeps only their SHA-256); 30-min idle / 8-h absolute expiry; lockout after 5 failed logins; CSRF token on every change; strict CSP with no inline scripts or styles; `noindex`; CSV formula-injection protection; every write is audited; optional IP allow-list. On a server, reach it through an SSH tunnel: `ssh -L 3001:127.0.0.1:3001 you@server`.
+**Security** — scrypt password hash plus **two-factor (authenticator app)** where each code works once; 256-bit session tokens in `__Host-` HttpOnly SameSite=Strict cookies (only their SHA-256 is stored, in Postgres); 30-min idle / 8-h absolute expiry; lock-outs by IP and by account shared across all servers; CSRF token on every change; strict CSP with no inline scripts or styles; `noindex`; CSV formula-injection protection; every write is audited; optional IP allow-list. Locally it listens on its own port (:3001); on Vercel it is at `/admin/`.
 
 **Customer-facing extras** — coupon field at checkout (`WELCOME10` is created automatically and handed out by the newsletter sign-up), live stock on the product page, **Track Your Order** page (needs order number + email, reveals no address), Privacy / Terms / Shipping & Returns pages, a branded 404, `robots.txt`, `sitemap.xml` and product structured data.
 
 > The policy pages are drafted from your FAQ and the way checkout actually works. **Have a lawyer/CA review them** and fill in your registered business details in Admin → Settings before going live.
 
-## ✦ Going Live Checklist
+## ✦ Going Live (Vercel + Neon)
 
-Step-by-step server guide: [`deploy/DEPLOY.md`](deploy/DEPLOY.md). Run `npm run preflight` — it lists anything that would block a launch.
+Production runs on **Vercel** (pages + one serverless function) with **Neon Postgres**. The full runbook — environment variables, Razorpay webhook, monitoring, backups, secret rotation, rollback — is in [`deploy/DEPLOY.md`](deploy/DEPLOY.md). Run `npm run preflight` (with production variables loaded) to list anything that would block a launch.
 
-
-1. Complete Razorpay KYC and generate **live** keys; put them in the host's environment (not in git).
-2. Set `NODE_ENV=production`, `PUBLIC_ORIGIN=https://houseofmangalya.com`, `PAYMENT_PROVIDER=razorpay`.
-3. In Razorpay Dashboard → Webhooks, add `https://<domain>/api/webhooks/razorpay` with events `payment.captured`, `payment.failed`, `payment.authorized`, `order.paid`, `refund.processed`, `refund.failed`, and set `RAZORPAY_WEBHOOK_SECRET`.
-4. Enable **auto-capture** in Razorpay payment settings.
-5. Host behind HTTPS (Render, Railway, a VPS with nginx/Caddy…). Set `TRUST_PROXY=true` only behind your own proxy.
-6. Run `npm run admin:password` on the server, keep `ADMIN_HOST=127.0.0.1`, and run `npm run seed:demo -- --clear` if you ever loaded demo data.
-7. Schedule `npm run backup` daily and copy `backups/` off the machine; `data/orders.db` — it contains customer addresses (personal data under India's DPDP Act).
-
-> Note: this site now needs a Node server for checkout. Static hosting (e.g. GitHub Pages) will serve the pages but checkout will not work.
+Production is deliberately strict: it will not start without live gateway keys, a webhook secret, an https address, a Postgres URL and admin two-factor.
 
 ## ✦ License
 

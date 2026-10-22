@@ -1,109 +1,91 @@
-# Going live — step by step
+# Production runbook — Vercel + Neon (Postgres)
 
-Time needed: about 2 hours, plus waiting for Razorpay KYC and DNS.
-You need: a domain, a small Linux server (VPS), a Razorpay account, and this repository.
+The site runs as static pages on Vercel's CDN plus one serverless function (`api/index.js`) for
+checkout, tracking and the admin API. Orders, customers, stock, admin sessions and rate limits live in
+**Neon Postgres** (Singapore, the closest region to India). Nothing is stored in server memory, so any
+instance can serve any request.
 
-> The site is a Node.js server with a database file, so it needs a normal server (a VPS).
-> Static hosts (GitHub Pages, Netlify) and serverless platforms (Vercel, Cloudflare Pages) cannot run it.
-
-## 0. Before you start — launch blockers
-Run `npm run preflight` on your laptop with your production values in `.env`. It must say **0 blocking issues**.
-Also decide the content items in the PDF's Appendix A (certificate number, review count, health claims, origin story).
-
-## 1. Buy a domain
-Any registrar (GoDaddy, Namecheap, Cloudflare, BigRock). Use the same name as `PUBLIC_ORIGIN`.
-
-## 2. Create the server
-- Ubuntu 24.04 LTS, 1 vCPU / 1–2 GB RAM is plenty to start.
-- Choose a data-centre close to your customers (Mumbai or Bangalore if offered).
-  Providers with Indian regions include AWS Lightsail, DigitalOcean, Linode/Akamai and Google Cloud — check current availability and price.
-- Add **your SSH key** during creation; do not use password login.
-
-## 3. Secure the server (first login as root)
-```bash
-adduser --disabled-password --gecos "" mangalya
-apt update && apt -y upgrade
-ufw allow OpenSSH && ufw allow 80 && ufw allow 443 && ufw --force enable
-# optional but wise: disable SSH password login and root login
-sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/; s/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config && systemctl reload ssh
 ```
-Ports 3000 and 3001 stay **closed** to the internet. The store is reached through Caddy; the admin only through an SSH tunnel.
-
-## 4. Install Node.js (22.13 or newer) and Caddy
-```bash
-curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt -y install nodejs
-apt -y install debian-keyring debian-archive-keyring apt-transport-https curl
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-apt update && apt -y install caddy
-node --version   # must be v22.13 or higher
+Customer ─▶ Vercel CDN (pages)  ─▶ /api/* ─▶ Vercel Function (sin1) ─▶ Neon Postgres (ap-southeast-1)
+                                               └─▶ Razorpay (orders, payments, refunds, webhooks)
+Owner    ─▶ https://<site>/admin/  (password + authenticator code)
 ```
 
-## 5. Put the code on the server
-```bash
-mkdir -p /opt/mangalya && chown mangalya:mangalya /opt/mangalya
-su - mangalya -c "git clone https://github.com/Saumya039/House-Of-Mangalya.git /opt/mangalya"   # or upload with scp/rsync
-mkdir -p /opt/mangalya/data /opt/mangalya/backups && chown -R mangalya:mangalya /opt/mangalya
-```
-(There is nothing to `npm install` — no third-party packages.)
-Do **not** copy your laptop's `data/` folder: production starts with a clean database.
+## Environments
 
-## 6. Configure secrets
-```bash
-su - mangalya
-cd /opt/mangalya
-cp .env.production.example .env && chmod 600 .env
-nano .env                      # fill in the domain, Razorpay keys, webhook secret
-npm run admin:password -- --generate     # prints the admin password ONCE and stores only its hash
-npm run preflight              # must show no blocking issues
-```
-Razorpay: Dashboard → Account & Settings → API Keys (use **live** keys once KYC is approved).
-Webhook: Dashboard → Webhooks → URL `https://YOUR-DOMAIN/api/webhooks/razorpay`, events
-`payment.captured, payment.failed, payment.authorized, order.paid, refund.processed, refund.failed`,
-and put the secret you choose in `RAZORPAY_WEBHOOK_SECRET`. Also enable **auto-capture**.
+| | Preview (branches) | Production (`main`) |
+|---|---|---|
+| Database | Neon branch `preview` (test data) | Neon branch `main` (live data) |
+| Payments | test-mode gateway (no real money) | Razorpay **live** keys |
+| Access | private (Vercel sign-in) | public |
 
-## 7. Run it as a service
-```bash
-cp /opt/mangalya/deploy/mangalya.service /etc/systemd/system/
-systemctl daemon-reload && systemctl enable --now mangalya
-systemctl status mangalya --no-pager      # should say "active (running)"
-journalctl -u mangalya -n 20 --no-pager   # should show the store and admin lines
-```
+Production refuses to start unless it is safe: live gateway keys, webhook secret, https site address,
+Postgres URL and two-factor for the admin are all required. If something is missing the API answers
+`503` and the reason is in **Vercel → Logs** (never shown to visitors).
 
-## 8. Point the domain and turn on HTTPS
-1. At your registrar create **A records** for `@` and `www` → the server's IP address.
-2. Edit `/opt/mangalya/deploy/Caddyfile` (your domain), then:
-```bash
-cp /opt/mangalya/deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
-```
-Caddy fetches a free HTTPS certificate automatically once DNS has propagated (minutes to a few hours).
+## Environment variables (Vercel → Settings → Environment Variables)
 
-## 9. Test before announcing
-- Open `https://YOUR-DOMAIN` — pages, images, cart.
-- Place a **real small order** with a live card/UPI (a ₹ test with a low-priced coupon is fine), check it in the admin, ship it, print the invoice, then **refund it**.
-- Admin → Payment events should show the webhook arriving.
-- Run `npm run preflight` once more.
+| Name | Production | Preview | Notes |
+|---|---|---|---|
+| `DATABASE_URL` | Neon `main` pooled URL | Neon `preview` pooled URL | mark **Sensitive**; use `sslmode=verify-full` |
+| `RAZORPAY_KEY_ID` | `rzp_live_…` | `rzp_test_…` (optional) | |
+| `RAZORPAY_KEY_SECRET` | live secret | test secret | **Sensitive** |
+| `RAZORPAY_WEBHOOK_SECRET` | random 48-hex string | — | must equal the secret in Razorpay → Webhooks |
+| `PUBLIC_ORIGIN` | `https://your-site` | — | exact public address, https |
+| `ADMIN_USERNAME` | `admin` | `admin` | |
+| `ADMIN_PASSWORD_HASH` | scrypt hash | same | from `npm run admin:password -- --generate --totp --print-env` |
+| `ADMIN_TOTP_SECRET` | base32 secret | same | required in production |
+| `DEFAULT_STOCK` | `200` | `200` | starting stock, adjust in Admin → Inventory |
 
-## 10. Open the admin (from your laptop)
-```bash
-ssh -L 3001:127.0.0.1:3001 mangalya@YOUR-SERVER-IP
-```
-Leave that window open, then browse to http://localhost:3001 . The admin is never exposed to the internet.
+Never put these in git. `.env` files are ignored by git and by Vercel uploads.
 
-## 11. Keep it healthy
-```bash
-# daily backup at 02:30 (as the mangalya user:  crontab -e)
-30 2 * * * cd /opt/mangalya && /usr/bin/node scripts/backup.js >> backups/backup.log 2>&1
-```
-Copy `/opt/mangalya/backups/` off the server regularly (it holds customer addresses — keep it private).
+## Razorpay setup
+1. Dashboard → **Account & Settings → API Keys** → generate live keys (secret is shown once).
+2. **Webhooks → Add**: URL `https://<site>/api/webhooks/razorpay`, secret = `RAZORPAY_WEBHOOK_SECRET`,
+   events `payment.captured, payment.failed, payment.authorized, order.paid, refund.processed, refund.failed`.
+3. **Payment settings** → enable auto-capture.
 
-Update the site later:
-```bash
-su - mangalya -c "cd /opt/mangalya && git pull" && systemctl restart mangalya
-```
+## Deploying and updating
+- Push to a branch → Vercel builds a private **preview**. Merge to `main` → **production**.
+- `vercel.json` is generated: after changing security headers run `npm run build:vercel` (a test fails if it is stale).
+- Run `npm test` before merging (35+ tests, runs against real Postgres semantics via PGlite).
 
-## Rollback / trouble
-- Site down: `journalctl -u mangalya -n 50 --no-pager`. The server refuses to start with an unsafe configuration and prints why.
-- HTTPS not issued: DNS not propagated yet, or ports 80/443 blocked.
-- Bad deploy: `git checkout <previous-commit>` then `systemctl restart mangalya`.
-- Payments confirmed at Razorpay but showing unpaid: Admin → open the order → *Check status with gateway*.
+## Smoke test after every production deploy
+1. `https://<site>/api/health` → `{"ok":true}`.
+2. Open the product page, add to cart, start checkout: the Razorpay window must open.
+3. Place a small real order, ship it from Admin, print the invoice, then **refund** it.
+4. Admin → Payment events shows the webhook; Admin → Dashboard shows the order.
+
+## Operating it
+- **Admin:** `https://<site>/admin/` — password + 6-digit authenticator code; sessions expire after 30 min idle.
+  Five wrong attempts lock the IP for 15 minutes (shared across all instances).
+- **Monitoring:** point a free uptime monitor (UptimeRobot, Better Stack) at `/api/health` every 5 minutes;
+  it also keeps the database warm. Enable email alerts. Check Vercel → Logs for errors.
+- **Backups:** Neon keeps point-in-time history only for a short window on the free plan (6 hours here).
+  Run `npm run backup` weekly (needs `DATABASE_URL` in `.env`) and keep the file private — it contains
+  customer addresses. Consider Neon's paid plan for longer history.
+- **Rotate secrets** (every few months, or immediately if one is exposed): Neon → reset role password →
+  update `DATABASE_URL`; `npm run admin:password -- --generate --totp --print-env` → update the two admin
+  variables; Razorpay → regenerate keys / webhook secret; then redeploy.
+- **Plans:** Vercel's free Hobby plan is for non-commercial use — a shop should use Pro. Neon free scales to zero
+  after idle time (first request after a quiet spell is ~1 s slower).
+
+## Troubleshooting
+| Symptom | Check |
+|---|---|
+| API returns 503 | Vercel → Logs: the startup message names the missing/invalid variable |
+| Payment paid at Razorpay but order unpaid | Admin → open the order → **Check status with gateway**; check the webhook URL/secret |
+| Admin sign-in rejected | wrong code (wait for the next one, each works once), phone clock off, or locked for 15 min |
+| `ERR_TOO_MANY_REDIRECTS` | clear the site's cookies/cache |
+
+## Rollback
+Vercel → Deployments → pick the last good deployment → **Promote to Production** (instant). Database
+migrations are additive and backward compatible.
+
+---
+
+## Alternative: your own server
+The same code runs on any machine with Node 22.13+ and a Postgres database: set `DATABASE_URL`,
+`NODE_ENV=production` and the variables above, run `node server/index.js` behind Caddy/nginx
+(`deploy/Caddyfile`, `deploy/mangalya.service` are provided). The admin then listens on
+`127.0.0.1:3001` and is reached through an SSH tunnel.

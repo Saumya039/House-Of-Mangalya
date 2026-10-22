@@ -130,15 +130,24 @@
             <div class="shipping-options" id="shipping-options" role="radiogroup"></div>
           </fieldset>
 
+          <p class="legal-note">
+            <strong>Why we ask:</strong> your name, contact and address are used only to process, deliver and invoice this order and to
+            send order updates, as set out in our <a href="privacy.html">Privacy Policy</a>. We never see your card or UPI details.
+          </p>
+          <label class="consent-box" for="f-consent">
+            <input id="f-consent" name="consent" type="checkbox" required />
+            <span>I have read and agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of Use &amp; Sale</a>,
+            <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> and
+            <a href="shipping-returns.html" target="_blank" rel="noopener">Shipping &amp; Returns</a>, and consent to my personal data being processed to fulfil this order.</span>
+          </label>
+          <p class="field-error" data-error-for="consent"></p>
+
           <p class="checkout-form-error" id="form-error" role="alert" hidden></p>
 
           <button type="submit" class="btn btn-primary checkout-pay-btn" id="pay-btn" disabled>
             <span aria-hidden="true">🔒</span> <span id="pay-btn-label">Pay securely</span>
           </button>
-          <p class="checkout-fineprint">
-            By placing your order you agree to our <a href="terms.html">Terms</a> and
-            <a href="shipping-returns.html#returns">Returns Policy</a>. UPI, cards, net banking and wallets accepted.
-          </p>
+          <p class="checkout-fineprint">Prices are in ₹ and inclusive of all taxes (GST). UPI, cards, net banking and wallets accepted. Questions? <a href="faq.html">FAQ</a> or see the grievance officer details in the page footer.</p>
         </form>
 
         <aside class="checkout-summary checkout-card" aria-label="Order summary">

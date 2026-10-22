@@ -163,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const el of form.querySelectorAll('input, select')) {
       if (el.name === 'shipping') continue;
       if (!el.checkValidity()) {
+        if (el.name === 'consent') { setFieldError('consent', 'Please accept the terms and privacy policy to continue'); return false; }
         const label = form.querySelector(`label[for="${el.id}"]`)?.childNodes[0]?.textContent.trim() || 'This field';
         setFieldError(el.name, el.validity.valueMissing ? `${label} is required` : `${label} is invalid`);
         return false;

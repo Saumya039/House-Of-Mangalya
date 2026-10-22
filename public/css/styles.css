@@ -1612,36 +1612,48 @@ h4 { font-size: 1.25rem; }
 
 .checkout-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
   gap: 2rem;
   align-items: start;
+  max-width: 1080px;
+  margin: 0 auto;
 }
+.checkout-form { min-width: 0; }
 
 .checkout-card {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 1.75rem;
+  padding: 1.5rem 1.75rem 1.75rem;
   box-shadow: var(--shadow-sm);
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
   min-width: 0;
 }
+/* A floated legend sits inside the card instead of straddling its border */
 .checkout-card legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 0.25rem;
   font-family: var(--font-serif);
   font-size: 1.4rem;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--deep-brown);
-  padding: 0 0.5rem;
-  margin-left: -0.5rem;
 }
+.checkout-card legend + * { clear: both; }
+.checkout-card > .form-field:first-of-type,
+.checkout-card > .shipping-options { margin-top: 0.75rem; }
 .legend-note, .optional { font-family: var(--font-sans); font-size: 0.8rem; font-weight: 400; color: var(--text-muted); }
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.form-row-3 { grid-template-columns: 1.2fr 1.2fr 0.8fr; }
+.form-row-3 { grid-template-columns: 1.1fr 1.3fr 0.8fr; }
 .form-field { margin-top: 1rem; min-width: 0; }
+.form-row .form-field { margin-top: 1rem; }
 .form-field label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--text-body); margin-bottom: 0.35rem; }
 .form-field input,
-.form-field select {
+.form-field select,
+.coupon-row input {
   width: 100%;
   padding: 0.75rem 0.9rem;
   font: inherit;
@@ -1653,7 +1665,8 @@ h4 { font-size: 1.25rem; }
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 .form-field input:focus,
-.form-field select:focus { outline: none; border-color: var(--gold); background: var(--white); }
+.form-field select:focus,
+.coupon-row input:focus { outline: none; border-color: var(--gold); background: var(--white); }
 .form-field [aria-invalid="true"] { border-color: #B3261E; background: #FFF6F5; }
 .field-error { color: #B3261E; font-size: 0.78rem; margin-top: 0.3rem; min-height: 0; }
 .field-error:empty { display: none; }
@@ -1688,8 +1701,9 @@ h4 { font-size: 1.25rem; }
 .checkout-fineprint { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 0.85rem; }
 .checkout-fineprint a { color: var(--terracotta); text-decoration: underline; }
 
-.checkout-summary { position: sticky; top: 6.5rem; }
-.checkout-summary h2 { font-size: 1.6rem; margin-bottom: 1rem; }
+.checkout-summary { position: sticky; top: 6.5rem; padding: 1.5rem; }
+.checkout-summary h2 { font-size: 1.6rem; margin-bottom: 0.75rem; }
+.checkout-summary .cart-continue { display: block; text-align: center; font-size: 0.85rem; color: var(--text-muted); }
 .summary-lines li {
   display: flex; justify-content: space-between; gap: 1rem;
   padding: 0.6rem 0; border-bottom: 1px solid var(--cream-dark); font-size: 0.92rem;
@@ -1740,7 +1754,8 @@ h4 { font-size: 1.25rem; }
 }
 @media (max-width: 600px) {
   .form-row, .form-row-3 { grid-template-columns: 1fr; gap: 0; }
-  .checkout-card { padding: 1.25rem; }
+  .checkout-card { padding: 1.15rem 1.15rem 1.35rem; }
+  .coupon-row .btn { padding: 0.65rem 1rem; }
 }
 
 /* ── Policy, tracking & stock notes ────────────────── */
@@ -1765,9 +1780,20 @@ h4 { font-size: 1.25rem; }
 .stock-low { color: #B3261E; }
 .stock-out { color: #B3261E; }
 .stock-in { color: var(--forest); }
-.coupon-row { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
-.coupon-row input { flex: 1; text-transform: uppercase; }
-.coupon-row .btn { padding: 0.55rem 1.1rem; }
+.coupon-box { padding: 1rem 0 0.25rem; }
+.coupon-box label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--text-body); }
+.coupon-row { display: flex; gap: 0.5rem; margin-top: 0.4rem; align-items: stretch; }
+.coupon-row input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+.coupon-row .btn { padding: 0 1.1rem; white-space: nowrap; }
+.consent-box { display: flex; gap: 0.7rem; align-items: flex-start; margin: 0 0 1rem; font-size: 0.85rem; line-height: 1.5; color: var(--text-body); cursor: pointer; }
+.consent-box input { margin-top: 0.25rem; width: 1.05rem; height: 1.05rem; flex: none; accent-color: var(--gold); }
+.consent-box a, .legal-note a { color: var(--terracotta); text-decoration: underline; }
+.legal-note { font-size: 0.78rem; color: var(--text-muted); line-height: 1.55; margin: 0 0 1rem; }
+.footer-legal { border-top: 1px solid rgba(255,255,255,0.12); margin-top: 1.5rem; padding-top: 1.25rem; font-size: 0.78rem; line-height: 1.7; opacity: 0.85; display: grid; gap: 0.35rem; }
+.footer-legal strong { font-weight: 600; }
+.policy-table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; font-size: 0.92rem; }
+.policy-table th, .policy-table td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.policy-table th { width: 11rem; color: var(--deep-brown); font-weight: 600; }
 .coupon-msg { font-size: 0.82rem; margin-top: 0.35rem; }
 .coupon-msg.ok { color: var(--forest); }
 .coupon-msg.bad { color: #B3261E; }

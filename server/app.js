@@ -101,6 +101,17 @@ function createApp({ config, db, provider, log = console }) {
       sendJson(res, 200, { ok: true });
     },
 
+    // Seller details the Consumer Protection (E-Commerce) Rules 2020 and FSSAI require on the website.
+    // Only public, non-sensitive fields — never costs, goals or anything else in settings.
+    'GET /api/business': async (req, res) => {
+      const s = await db.allSettings();
+      sendJson(res, 200, {
+        name: s.biz_name || '', address: s.biz_address || '', gstin: s.gstin || '', fssai: s.fssai || '',
+        phone: s.biz_phone || '', email: s.biz_email || '',
+        grievance: { name: s.grievance_name || '', email: s.grievance_email || s.biz_email || '', phone: s.grievance_phone || s.biz_phone || '' },
+      });
+    },
+
     'GET /api/config': async (req, res) => {
       const cat = publicCatalog();
       cat.products = await Promise.all(cat.products.map(async p => {

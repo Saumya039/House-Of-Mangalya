@@ -521,4 +521,31 @@ document.addEventListener('DOMContentLoaded', () => {
     thumb.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); thumb.click(); } });
   });
 
+
+  // ── Seller & grievance details (legally required on the site; filled from Admin → Settings) ──
+  fetch('/api/business').then(r => r.ok ? r.json() : null).then(b => {
+    if (!b) return;
+    const el = (tag, text) => { const n = document.createElement(tag); n.textContent = text; return n; };
+    const row = (label, value) => { if (!value) return null; const p = document.createElement('p'); p.append(el('strong', label + ': '), document.createTextNode(value)); return p; };
+    const g = b.grievance || {};
+    const lines = [
+      row('Sold by', b.name), row('Registered address', b.address), row('GSTIN', b.gstin), row('FSSAI Lic. No.', b.fssai),
+      row('Contact', [b.phone, b.email].filter(Boolean).join(' · ')),
+      row('Grievance Officer', [g.name, g.email, g.phone].filter(Boolean).join(' · ')),
+      row('Country of origin', 'India')
+    ].filter(Boolean);
+    const bottom = document.querySelector('.footer-bottom');
+    if (bottom && lines.length > 1) {
+      const box = document.createElement('div');
+      box.className = 'footer-legal';
+      lines.forEach(l => box.appendChild(l));
+      bottom.parentNode.insertBefore(box, bottom);
+    }
+    document.querySelectorAll('[data-biz]').forEach(n => {
+      const path = n.dataset.biz.split('.');
+      const v = path.reduce((o, k) => (o ? o[k] : ''), b);
+      if (v) n.textContent = v;
+    });
+  }).catch(() => { /* footer details are optional */ });
+
 });

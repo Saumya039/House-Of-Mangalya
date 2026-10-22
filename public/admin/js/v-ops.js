@@ -97,6 +97,7 @@
       ['biz_name', 'Business name', {}], ['gstin', 'GSTIN', { placeholder: '27ABCDE1234F1Z5', maxlength: 15 }], ['fssai', 'FSSAI licence no. (14 digits)', { maxlength: 14, inputmode: 'numeric' }],
       ['biz_state', 'State (for CGST/SGST vs IGST)', { select: true }], ['biz_phone', 'Phone', {}], ['biz_email', 'Email', { type: 'email' }],
       ['biz_address', 'Registered address', { textarea: true, full: true }], ['invoice_prefix', 'Invoice prefix', { maxlength: 8 }], ['hsn_code', 'HSN code', { inputmode: 'numeric' }],
+      ['grievance_name', 'Grievance officer — name (shown publicly)', {}], ['grievance_email', 'Grievance officer — email', { type: 'email' }], ['grievance_phone', 'Grievance officer — phone', {}],
       ['gst_pct', 'GST rate (%) — prices include GST', { type: 'number', step: '0.1' }], ['invoice_note', 'Invoice footer note', { full: true }],
     ]],
     ['Costs (for the Profit page)', 'Only you see these. Leave at 0 to skip profit estimates.', [
